@@ -1,0 +1,921 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:transparent}
+.wrap{display:flex;min-height:600px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;background:var(--color-background-primary)}
+.sidebar{width:220px;flex-shrink:0;border-right:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);overflow-y:auto;padding:12px 0}
+.sidebar-title{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.08em;padding:8px 16px 4px}
+.nav-item{display:block;padding:7px 16px;font-size:13px;color:var(--color-text-secondary);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.nav-item:hover{color:var(--color-text-primary);background:var(--color-background-primary)}
+.nav-item.active{color:var(--color-text-primary);background:var(--color-background-primary);border-left:2px solid #7F77DD;font-weight:500}
+.content{flex:1;overflow-y:auto;padding:28px 32px;min-width:0}
+.topic-title{font-size:20px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px}
+.topic-subtitle{font-size:14px;color:var(--color-text-secondary);margin-bottom:20px;line-height:1.6}
+.section{margin-bottom:24px}
+.section-label{font-size:12px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.explain{font-size:14px;color:var(--color-text-secondary);line-height:1.75;margin-bottom:12px}
+.code-block{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px 16px;font-family:var(--font-mono);font-size:12.5px;line-height:1.7;color:var(--color-text-primary);overflow-x:auto;margin-bottom:12px;white-space:pre}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.badge-purple{background:#EEEDFE;color:#534AB7}
+.badge-teal{background:#E1F5EE;color:#0F6E56}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-coral{background:#FAECE7;color:#993C1D}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.complexity-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+.complexity-table th{text-align:left;padding:7px 10px;font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid var(--color-border-tertiary)}
+.complexity-table td{padding:7px 10px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.complexity-table tr:last-child td{border-bottom:none}
+.good{color:#0F6E56;font-weight:500}.ok{color:#854F0B;font-weight:500}.bad{color:#993C1D;font-weight:500}
+.tip-box{border:0.5px solid var(--color-border-tertiary);border-left:2px solid #7F77DD;border-radius:var(--border-radius-md);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--color-text-secondary);line-height:1.65}
+.tip-box b{color:var(--color-text-primary);font-weight:500}
+.vis-row{display:flex;align-items:center;gap:6px;margin:10px 0;flex-wrap:wrap}
+.node{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:6px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.node-hl{background:#EEEDFE;border-color:#AFA9EC;color:#534AB7}
+.arrow{color:var(--color-text-tertiary);font-size:14px}
+.arrow-label{font-size:11px;color:var(--color-text-tertiary)}
+.sub-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.sub-btn{padding:5px 12px;font-size:12px;border:0.5px solid var(--color-border-tertiary);border-radius:20px;cursor:pointer;background:transparent;color:var(--color-text-secondary);transition:all .15s}
+.sub-btn:hover,.sub-btn.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)}
+.divider{height:0.5px;background:var(--color-border-tertiary);margin:16px 0}
+</style>
+
+<h2 class="sr-only">DSA with Python — beginner documentation covering complexity, arrays, linked lists, stacks, queues, hashing, and sorting</h2>
+
+<div class="wrap">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-title">Foundations</div>
+    <div class="nav-item active" onclick="show('complexity')">Big O & Complexity</div>
+    <div class="sidebar-title">Data Structures</div>
+    <div class="nav-item" onclick="show('arrays')">Arrays</div>
+    <div class="nav-item" onclick="show('linked')">Linked Lists</div>
+    <div class="nav-item" onclick="show('stacks')">Stacks</div>
+    <div class="nav-item" onclick="show('queues')">Queues</div>
+    <div class="nav-item" onclick="show('hashing')">Hashing</div>
+    <div class="sidebar-title">Algorithms</div>
+    <div class="nav-item" onclick="show('searching')">Searching</div>
+    <div class="nav-item" onclick="show('sorting')">Sorting</div>
+    <div class="sidebar-title">Reference</div>
+    <div class="nav-item" onclick="show('cheatsheet')">Complexity Cheatsheet</div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+const topics = {
+complexity: `<div class="topic-title">Big O & Algorithmic Complexity</div>
+<div class="topic-subtitle">Before writing any algorithm, you need to measure <em>how fast</em> it runs and <em>how much memory</em> it uses as input grows. That measurement is Big O notation.</div>
+<div class="sub-nav">
+  <button class="sub-btn active" onclick="subShow(this,'co1')">What is Big O?</button>
+  <button class="sub-btn" onclick="subShow(this,'co2')">Complexity Classes</button>
+  <button class="sub-btn" onclick="subShow(this,'co3')">How to Calculate</button>
+  <button class="sub-btn" onclick="subShow(this,'co4')">Practice</button>
+</div>
+<div id="co1">
+  <div class="section-label">The Core Idea</div>
+  <div class="explain">Big O answers: "if I double the input size, how much slower does my code get?" It ignores constants and focuses only on the <em>dominant term</em> (the part that grows fastest).</div>
+  <div class="tip-box"><b>Simple rule:</b> we always look at the <em>worst case</em>. If you're searching through 1 million items, Big O tells you the maximum steps needed.</div>
+  <div class="vis-row">
+    <span class="node node-hl">O(1)</span><span class="arrow-label">constant</span>
+    <span style="color:var(--color-border-secondary);margin:0 4px">→</span>
+    <span class="node node-hl">O(log n)</span><span class="arrow-label">logarithmic</span>
+    <span style="color:var(--color-border-secondary);margin:0 4px">→</span>
+    <span class="node node-hl">O(n)</span><span class="arrow-label">linear</span>
+    <span style="color:var(--color-border-secondary);margin:0 4px">→</span>
+    <span class="node node-hl">O(n²)</span><span class="arrow-label">quadratic</span>
+  </div>
+  <div class="divider"></div>
+  <div class="section-label">Quick Example</div>
+<div class="code-block"># O(1) — no matter how big the list, this is 1 step
+def get_first(arr):
+    return arr[0]
+
+# O(n) — if list has 1000 items, up to 1000 steps
+def find_item(arr, target):
+    for item in arr:
+        if item == target:
+            return True
+    return False
+
+# O(n²) — nested loop: 1000 items = up to 1,000,000 steps
+def has_duplicates(arr):
+    for i in range(len(arr)):
+        for j in range(i+1, len(arr)):
+            if arr[i] == arr[j]:
+                return True
+    return False</div>
+</div>
+<div id="co2" style="display:none">
+  <div class="section-label">Complexity Classes (best → worst)</div>
+  <table class="complexity-table">
+    <tr><th>Notation</th><th>Name</th><th>Example</th><th>n=1000 steps</th></tr>
+    <tr><td><b>O(1)</b></td><td class="good">Constant</td><td>Array index access</td><td class="good">1</td></tr>
+    <tr><td><b>O(log n)</b></td><td class="good">Logarithmic</td><td>Binary search</td><td class="good">~10</td></tr>
+    <tr><td><b>O(n)</b></td><td class="ok">Linear</td><td>Linear search</td><td class="ok">1,000</td></tr>
+    <tr><td><b>O(n log n)</b></td><td class="ok">Linearithmic</td><td>Merge sort</td><td class="ok">~10,000</td></tr>
+    <tr><td><b>O(n²)</b></td><td class="bad">Quadratic</td><td>Bubble sort</td><td class="bad">1,000,000</td></tr>
+    <tr><td><b>O(2ⁿ)</b></td><td class="bad">Exponential</td><td>Recursive Fibonacci</td><td class="bad">10³⁰¹</td></tr>
+  </table>
+  <div class="tip-box"><b>Remember:</b> O(1) and O(log n) are excellent. O(n) is fine. O(n²) becomes painful at large inputs. O(2ⁿ) is almost never acceptable.</div>
+</div>
+<div id="co3" style="display:none">
+  <div class="section-label">Rules to calculate Big O</div>
+  <div class="explain"><b>1. Drop constants</b> — O(2n) becomes O(n). O(500) becomes O(1).</div>
+  <div class="explain"><b>2. Drop lower-order terms</b> — O(n² + n) becomes O(n²). The n² term dominates.</div>
+  <div class="explain"><b>3. Single loop = O(n). Nested loops = multiply</b> — two nested loops over n = O(n²).</div>
+  <div class="explain"><b>4. Sequential blocks = add</b> — O(n) + O(n) = O(n), not O(2n).</div>
+<div class="code-block"># How to read this function's complexity:
+def example(arr):
+    n = len(arr)
+
+    # Step 1: single loop → O(n)
+    for i in arr:
+        print(i)
+
+    # Step 2: another single loop → O(n)
+    for i in arr:
+        print(i * 2)
+
+    # Total: O(n) + O(n) = O(2n) → drop constant → O(n)
+
+
+# Nested loop example:
+def nested(arr):
+    for i in arr:          # n times
+        for j in arr:      # n times each
+            print(i, j)
+    # Total: O(n × n) = O(n²)</div>
+</div>
+<div id="co4" style="display:none">
+  <div class="section-label">What's the complexity? (Think before reading)</div>
+<div class="code-block"># Q1: What is the Big O of this?
+def mystery1(n):
+    count = 0
+    while n > 1:
+        n = n // 2   # halving each time
+        count += 1
+    return count
+# Answer: O(log n) — we're halving n each iteration</div>
+<div class="code-block"># Q2: What about this?
+def mystery2(arr):
+    return arr[len(arr) - 1]
+# Answer: O(1) — just one index access, no loop</div>
+<div class="code-block"># Q3: Three nested loops?
+def mystery3(arr):
+    for i in arr:
+        for j in arr:
+            for k in arr:
+                print(i, j, k)
+# Answer: O(n³) — three nested loops, each runs n times</div>
+  <div class="tip-box"><b>Key habit:</b> Before writing code, ask yourself "what's the Big O?" and aim for the best complexity you can achieve.</div>
+</div>`,
+
+arrays:`<div class="topic-title">Arrays</div>
+<div class="topic-subtitle">Arrays store elements in <em>contiguous memory</em>. Python's built-in list is a dynamic array — it automatically resizes as you add elements.</div>
+<div class="sub-nav">
+  <button class="sub-btn active" onclick="subShow(this,'ar1')">How arrays work</button>
+  <button class="sub-btn" onclick="subShow(this,'ar2')">Dynamic arrays</button>
+  <button class="sub-btn" onclick="subShow(this,'ar3')">Build your own list</button>
+  <button class="sub-btn" onclick="subShow(this,'ar4')">Complexities</button>
+</div>
+<div id="ar1">
+  <div class="section-label">Memory layout</div>
+  <div class="explain">Each element sits next to the previous one in memory. This means accessing any element by index is O(1) — the CPU can jump directly to it.</div>
+  <div class="vis-row">
+    <span class="arrow-label">index→</span>
+    <span class="node" style="border-color:#AFA9EC">0<br><span style="font-size:9px;color:var(--color-text-tertiary)">10</span></span>
+    <span class="node" style="border-color:#AFA9EC">1<br><span style="font-size:9px;color:var(--color-text-tertiary)">20</span></span>
+    <span class="node" style="border-color:#AFA9EC">2<br><span style="font-size:9px;color:var(--color-text-tertiary)">30</span></span>
+    <span class="node" style="border-color:#AFA9EC">3<br><span style="font-size:9px;color:var(--color-text-tertiary)">40</span></span>
+    <span class="node" style="border-color:#AFA9EC">4<br><span style="font-size:9px;color:var(--color-text-tertiary)">50</span></span>
+  </div>
+  <div class="divider"></div>
+  <div class="section-label">Referential arrays (Python lists)</div>
+  <div class="explain">Python lists don't store values directly — they store <em>references (pointers)</em> to objects in memory. That's why a Python list can hold mixed types.</div>
+<div class="code-block">my_list = [10, "hello", 3.14, True]
+# Each slot holds a reference (memory address),
+# not the value itself. This is a referential array.</div>
+</div>
+<div id="ar2" style="display:none">
+  <div class="section-label">The resizing trick</div>
+  <div class="explain">When a dynamic array runs out of space, it creates a new, <em>larger array</em> (usually 2× the size), copies all elements, then continues. This is called <em>amortized O(1)</em> for append.</div>
+<div class="code-block">import sys
+
+a = []
+for i in range(10):
+    print(f"len={len(a)}, size={sys.getsizeof(a)} bytes")
+    a.append(i)
+# You'll see the size jumps at specific lengths —
+# those are the resize events!</div>
+  <div class="tip-box"><b>Why amortized O(1)?</b> Most appends are instant. Occasionally one append costs O(n) to copy. But averaged over many appends, the cost per operation is O(1).</div>
+</div>
+<div id="ar3" style="display:none">
+  <div class="section-label">Building our own dynamic array (like CampusX does)</div>
+<div class="code-block">import ctypes
+
+class MyList:
+    def __init__(self):
+        self.size = 0         # how many items stored
+        self.capacity = 1     # how much space allocated
+        self.A = self._make_array(self.capacity)
+
+    def _make_array(self, cap):
+        return (cap * ctypes.py_object)()
+
+    def __len__(self):
+        return self.size
+
+    def append(self, item):
+        if self.size == self.capacity:
+            self._resize(2 * self.capacity)  # double!
+        self.A[self.size] = item
+        self.size += 1
+
+    def _resize(self, new_cap):
+        B = self._make_array(new_cap)
+        for i in range(self.size):
+            B[i] = self.A[i]
+        self.A = B
+        self.capacity = new_cap
+
+    def __getitem__(self, index):
+        if not 0 <= index < self.size:
+            raise IndexError("Index out of range")
+        return self.A[index]
+
+    def __str__(self):
+        return "[" + ", ".join(str(self.A[i])
+               for i in range(self.size)) + "]"
+
+# Usage
+lst = MyList()
+lst.append(10)
+lst.append(20)
+print(lst)      # [10, 20]
+print(len(lst)) # 2</div>
+</div>
+<div id="ar4" style="display:none">
+  <table class="complexity-table">
+    <tr><th>Operation</th><th>Time</th><th>Why?</th></tr>
+    <tr><td>Access by index</td><td class="good">O(1)</td><td>Direct memory jump</td></tr>
+    <tr><td>Append (end)</td><td class="good">O(1) amortized</td><td>Usually just add at end</td></tr>
+    <tr><td>Insert at middle</td><td class="bad">O(n)</td><td>Must shift elements right</td></tr>
+    <tr><td>Delete from middle</td><td class="bad">O(n)</td><td>Must shift elements left</td></tr>
+    <tr><td>Search (unsorted)</td><td class="bad">O(n)</td><td>Check each element</td></tr>
+    <tr><td>Pop from end</td><td class="good">O(1)</td><td>Just decrement size</td></tr>
+  </table>
+  <div class="tip-box"><b>Key weakness of arrays:</b> insert/delete in the middle is slow — you have to shift everything. Linked lists solve this but sacrifice O(1) access.</div>
+</div>`,
+
+linked:`<div class="topic-title">Linked Lists</div>
+<div class="topic-subtitle">A linked list stores data in <em>nodes</em> scattered anywhere in memory. Each node points to the next. No contiguous memory required.</div>
+<div class="sub-nav">
+  <button class="sub-btn active" onclick="subShow(this,'ll1')">Structure</button>
+  <button class="sub-btn" onclick="subShow(this,'ll2')">Full implementation</button>
+  <button class="sub-btn" onclick="subShow(this,'ll3')">Operations</button>
+  <button class="sub-btn" onclick="subShow(this,'ll4')">vs Arrays</button>
+</div>
+<div id="ll1">
+  <div class="section-label">Node structure</div>
+  <div class="vis-row">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+      <span class="node node-hl" style="width:auto;padding:0 10px">Head</span>
+    </div>
+    <span class="arrow">→</span>
+    <div style="display:inline-flex;border:0.5px solid var(--color-border-tertiary);border-radius:6px;overflow:hidden;font-size:12px">
+      <span style="padding:8px 10px;border-right:0.5px solid var(--color-border-tertiary)">10</span>
+      <span style="padding:8px 10px;color:var(--color-text-tertiary)">next→</span>
+    </div>
+    <span class="arrow">→</span>
+    <div style="display:inline-flex;border:0.5px solid var(--color-border-tertiary);border-radius:6px;overflow:hidden;font-size:12px">
+      <span style="padding:8px 10px;border-right:0.5px solid var(--color-border-tertiary)">20</span>
+      <span style="padding:8px 10px;color:var(--color-text-tertiary)">next→</span>
+    </div>
+    <span class="arrow">→</span>
+    <div style="display:inline-flex;border:0.5px solid var(--color-border-tertiary);border-radius:6px;overflow:hidden;font-size:12px">
+      <span style="padding:8px 10px;border-right:0.5px solid var(--color-border-tertiary)">30</span>
+      <span style="padding:8px 10px;color:var(--color-text-tertiary)">None</span>
+    </div>
+    <span class="arrow-label" style="margin-left:4px">← Tail</span>
+  </div>
+<div class="code-block">class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None  # points to the next node
+
+class LinkedList:
+    def __init__(self):
+        self.head = None   # empty list has no head</div>
+</div>
+<div id="ll2" style="display:none">
+<div class="code-block">class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert_head(self, data):
+        new_node = Node(data)
+        new_node.next = self.head
+        self.head = new_node          # O(1)
+
+    def insert_tail(self, data):
+        new_node = Node(data)
+        if not self.head:
+            self.head = new_node
+            return
+        curr = self.head
+        while curr.next:              # walk to end
+            curr = curr.next
+        curr.next = new_node          # O(n)
+
+    def delete_head(self):
+        if not self.head: return
+        self.head = self.head.next    # O(1)
+
+    def traverse(self):
+        curr = self.head
+        while curr:
+            print(curr.data, end=" → ")
+            curr = curr.next
+        print("None")
+
+    def search(self, target):
+        curr = self.head
+        while curr:
+            if curr.data == target:
+                return True
+            curr = curr.next
+        return False
+
+# Usage
+ll = LinkedList()
+ll.insert_tail(10)
+ll.insert_tail(20)
+ll.insert_tail(30)
+ll.traverse()   # 10 → 20 → 30 → None</div>
+</div>
+<div id="ll3" style="display:none">
+  <div class="section-label">Insert in the middle</div>
+<div class="code-block">def insert_at(self, pos, data):
+    new_node = Node(data)
+    if pos == 0:
+        new_node.next = self.head
+        self.head = new_node
+        return
+    curr = self.head
+    for _ in range(pos - 1):   # walk to position-1
+        if not curr: return
+        curr = curr.next
+    new_node.next = curr.next   # rewire pointers
+    curr.next = new_node        # O(n) to find, O(1) to insert</div>
+  <div class="section-label" style="margin-top:12px">Reverse a linked list (in-place)</div>
+<div class="code-block">def reverse(self):
+    prev = None
+    curr = self.head
+    while curr:
+        nxt = curr.next   # save next
+        curr.next = prev  # flip pointer
+        prev = curr       # move prev forward
+        curr = nxt        # move curr forward
+    self.head = prev      # new head is old tail</div>
+</div>
+<div id="ll4" style="display:none">
+  <table class="complexity-table">
+    <tr><th>Operation</th><th>Array</th><th>Linked List</th></tr>
+    <tr><td>Access by index</td><td class="good">O(1)</td><td class="bad">O(n)</td></tr>
+    <tr><td>Insert at head</td><td class="bad">O(n)</td><td class="good">O(1)</td></tr>
+    <tr><td>Insert at tail</td><td class="good">O(1)</td><td class="bad">O(n)*</td></tr>
+    <tr><td>Insert at middle</td><td class="bad">O(n)</td><td class="ok">O(n) find + O(1) insert</td></tr>
+    <tr><td>Delete at head</td><td class="bad">O(n)</td><td class="good">O(1)</td></tr>
+    <tr><td>Search</td><td class="bad">O(n)</td><td class="bad">O(n)</td></tr>
+    <tr><td>Memory overhead</td><td class="good">Low</td><td class="bad">Extra pointer per node</td></tr>
+  </table>
+  <div class="tip-box"><b>* With a tail pointer:</b> Linked list tail insert is O(1). Most implementations track tail.<br><b>Use arrays when:</b> you need fast random access. <b>Use linked lists when:</b> you insert/delete at head frequently.</div>
+</div>`,
+
+stacks:`<div class="topic-title">Stacks</div>
+<div class="topic-subtitle">A stack is <em>Last In, First Out (LIFO)</em>. Like a stack of plates — you always add and remove from the top.</div>
+<div class="sub-nav">
+  <button class="sub-btn active" onclick="subShow(this,'st1')">Concept</button>
+  <button class="sub-btn" onclick="subShow(this,'st2')">Implementation</button>
+  <button class="sub-btn" onclick="subShow(this,'st3')">Problems</button>
+</div>
+<div id="st1">
+  <div class="section-label">LIFO — Last In, First Out</div>
+  <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin:10px 0 14px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="node node-hl" style="width:120px;border-radius:6px">30 ← top</div>
+      <span class="arrow-label">last pushed, first popped</span>
+    </div>
+    <div class="node" style="width:120px;border-radius:6px">20</div>
+    <div class="node" style="width:120px;border-radius:6px">10</div>
+    <div style="width:120px;height:2px;background:var(--color-border-secondary);border-radius:2px"></div>
+  </div>
+  <div class="badge-row">
+    <span class="badge badge-purple">push(x) → add to top</span>
+    <span class="badge badge-teal">pop() → remove from top</span>
+    <span class="badge badge-blue">peek() → see top without removing</span>
+  </div>
+  <div class="explain">Real-world uses: browser back button, undo/redo in editors, function call stack, bracket matching.</div>
+</div>
+<div id="st2" style="display:none">
+  <div class="section-label">Using Python list (easiest)</div>
+<div class="code-block">stack = []
+
+stack.append(10)   # push — O(1)
+stack.append(20)
+stack.append(30)
+
+print(stack[-1])   # peek — O(1) → 30
+stack.pop()        # pop — O(1) → removes 30
+print(stack)       # [10, 20]</div>
+  <div class="section-label" style="margin-top:12px">Using Linked List (as CampusX teaches)</div>
+<div class="code-block">class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class Stack:
+    def __init__(self):
+        self.top = None
+        self.size = 0
+
+    def push(self, data):
+        new_node = Node(data)
+        new_node.next = self.top
+        self.top = new_node
+        self.size += 1
+
+    def pop(self):
+        if not self.top:
+            raise IndexError("Stack is empty")
+        data = self.top.data
+        self.top = self.top.next
+        self.size -= 1
+        return data
+
+    def peek(self):
+        if not self.top: return None
+        return self.top.data
+
+    def is_empty(self):
+        return self.size == 0</div>
+</div>
+<div id="st3" style="display:none">
+  <div class="section-label">Problem: balanced brackets</div>
+<div class="code-block">def is_balanced(s):
+    stack = []
+    pairs = {')': '(', '}': '{', ']': '['}
+    for ch in s:
+        if ch in '({[':
+            stack.append(ch)
+        elif ch in ')}]':
+            if not stack or stack[-1] != pairs[ch]:
+                return False
+            stack.pop()
+    return len(stack) == 0
+
+print(is_balanced("({[]})"))  # True
+print(is_balanced("({[})"))   # False</div>
+  <div class="section-label" style="margin-top:12px">Problem: undo/redo</div>
+<div class="code-block">class TextEditor:
+    def __init__(self):
+        self.text = ""
+        self.undo_stack = []
+        self.redo_stack = []
+
+    def type(self, new_text):
+        self.undo_stack.append(self.text)
+        self.redo_stack.clear()
+        self.text = new_text
+
+    def undo(self):
+        if self.undo_stack:
+            self.redo_stack.append(self.text)
+            self.text = self.undo_stack.pop()
+
+    def redo(self):
+        if self.redo_stack:
+            self.undo_stack.append(self.text)
+            self.text = self.redo_stack.pop()</div>
+</div>`,
+
+queues:`<div class="topic-title">Queues</div>
+<div class="topic-subtitle">A queue is <em>First In, First Out (FIFO)</em>. Like a line at a ticket counter — the first person in is the first to be served.</div>
+<div class="sub-nav">
+  <button class="sub-btn active" onclick="subShow(this,'qu1')">Concept</button>
+  <button class="sub-btn" onclick="subShow(this,'qu2')">Implementation</button>
+  <button class="sub-btn" onclick="subShow(this,'qu3')">Queue using 2 stacks</button>
+</div>
+<div id="qu1">
+  <div class="section-label">FIFO — First In, First Out</div>
+  <div class="vis-row" style="align-items:center">
+    <span class="arrow-label">enqueue →</span>
+    <span class="node" style="border-color:#9FE1CB">10</span>
+    <span class="node" style="border-color:#9FE1CB">20</span>
+    <span class="node" style="border-color:#9FE1CB">30</span>
+    <span class="node node-hl" style="border-color:#AFA9EC">40</span>
+    <span class="arrow-label">← new item</span>
+  </div>
+  <div class="vis-row">
+    <span class="arrow-label" style="margin-right:4px">dequeue ← 10 (first in = first out)</span>
+  </div>
+  <div class="badge-row" style="margin-top:10px">
+    <span class="badge badge-teal">enqueue(x) → add to back</span>
+    <span class="badge badge-coral">dequeue() → remove from front</span>
+  </div>
+  <div class="explain">Real-world uses: print spooler, CPU scheduling, BFS graph traversal, customer service systems.</div>
+</div>
+<div id="qu2" style="display:none">
+  <div class="section-label">Using collections.deque (best for queues in Python)</div>
+<div class="code-block">from collections import deque
+
+q = deque()
+q.append(10)     # enqueue — O(1)
+q.append(20)
+q.append(30)
+print(q.popleft())  # dequeue — O(1) → 10
+print(q)            # deque([20, 30])</div>
+  <div class="tip-box"><b>Why not a list?</b> Python list's pop(0) is O(n) because it shifts all elements. deque's popleft() is O(1) — always prefer deque for queues.</div>
+  <div class="section-label" style="margin-top:12px">Queue using Linked List</div>
+<div class="code-block">class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class Queue:
+    def __init__(self):
+        self.front = None
+        self.rear = None
+        self.size = 0
+
+    def enqueue(self, data):
+        new_node = Node(data)
+        if not self.rear:
+            self.front = self.rear = new_node
+        else:
+            self.rear.next = new_node
+            self.rear = new_node
+        self.size += 1
+
+    def dequeue(self):
+        if not self.front:
+            raise IndexError("Queue is empty")
+        data = self.front.data
+        self.front = self.front.next
+        if not self.front:
+            self.rear = None
+        self.size -= 1
+        return data</div>
+</div>
+<div id="qu3" style="display:none">
+  <div class="section-label">Classic interview problem: implement queue using 2 stacks</div>
+  <div class="explain">Use stack1 for enqueue, stack2 for dequeue. When stack2 is empty, pour all from stack1 into stack2 — this reverses the order.</div>
+<div class="code-block">class QueueUsing2Stacks:
+    def __init__(self):
+        self.s1 = []  # for enqueue
+        self.s2 = []  # for dequeue
+
+    def enqueue(self, x):
+        self.s1.append(x)
+
+    def dequeue(self):
+        if not self.s2:
+            while self.s1:
+                self.s2.append(self.s1.pop())
+        if not self.s2:
+            raise IndexError("Queue empty")
+        return self.s2.pop()
+
+# Why this works:
+# enqueue 1,2,3 → s1=[1,2,3], s2=[]
+# dequeue: pour s1 into s2 → s2=[3,2,1]
+# pop from s2 → 1 (correct FIFO order!)</div>
+</div>`,
+
+hashing:`<div class="topic-title">Hashing</div>
+<div class="topic-subtitle">Hashing maps any key (string, number) to an index in an array using a <em>hash function</em>. This enables O(1) average lookup — the magic behind Python dicts.</div>
+<div class="sub-nav">
+  <button class="sub-btn active" onclick="subShow(this,'ha1')">Intuition</button>
+  <button class="sub-btn" onclick="subShow(this,'ha2')">Collisions</button>
+  <button class="sub-btn" onclick="subShow(this,'ha3')">Linear Probing</button>
+  <button class="sub-btn" onclick="subShow(this,'ha4')">Chaining</button>
+</div>
+<div id="ha1">
+  <div class="section-label">The core idea</div>
+  <div class="explain">A hash function converts a key into an array index. Python's dict does this automatically.</div>
+<div class="code-block">def simple_hash(key, size):
+    return sum(ord(c) for c in str(key)) % size
+
+# "apple" → some number → index in array
+# Lookup is O(1) because we compute the index directly
+# instead of searching through everything
+
+# Python's dict uses hashing internally:
+d = {}
+d["name"] = "Alice"   # hash("name") → index → store
+print(d["name"])       # hash("name") → same index → retrieve</div>
+  <div class="badge-row" style="margin-top:10px">
+    <span class="badge badge-purple">hash(key) → index</span>
+    <span class="badge badge-teal">insert → O(1) avg</span>
+    <span class="badge badge-blue">search → O(1) avg</span>
+    <span class="badge badge-coral">delete → O(1) avg</span>
+  </div>
+</div>
+<div id="ha2" style="display:none">
+  <div class="section-label">What are collisions?</div>
+  <div class="explain">Two different keys can hash to the same index. This is called a <em>collision</em>. Hash tables must handle this.</div>
+<div class="code-block">size = 5
+hash("cat") % size  # might give → 2
+hash("act") % size  # might also give → 2 (collision!)
+
+# Two strategies to handle collisions:
+# 1. Open Addressing (Linear Probing) — find next empty slot
+# 2. Chaining — each slot holds a linked list of items</div>
+  <div class="tip-box"><b>Load factor</b> = number of items / table size. When load factor exceeds ~0.7, rehash (create a bigger table). Python dict rehashes at ~⅔ capacity.</div>
+</div>
+<div id="ha3" style="display:none">
+  <div class="section-label">Linear probing — find next empty slot</div>
+<div class="code-block">class HashTableLP:
+    def __init__(self, size=10):
+        self.size = size
+        self.table = [None] * size
+
+    def _hash(self, key):
+        return hash(key) % self.size
+
+    def insert(self, key, value):
+        idx = self._hash(key)
+        while self.table[idx] is not None:
+            if self.table[idx][0] == key:
+                self.table[idx] = (key, value)
+                return
+            idx = (idx + 1) % self.size  # probe next
+        self.table[idx] = (key, value)
+
+    def get(self, key):
+        idx = self._hash(key)
+        while self.table[idx]:
+            if self.table[idx][0] == key:
+                return self.table[idx][1]
+            idx = (idx + 1) % self.size
+        return None
+
+ht = HashTableLP()
+ht.insert("name", "Alice")
+ht.insert("age", 25)
+print(ht.get("name"))  # Alice</div>
+</div>
+<div id="ha4" style="display:none">
+  <div class="section-label">Chaining — each bucket holds a list</div>
+<div class="code-block">class HashTableChaining:
+    def __init__(self, size=10):
+        self.size = size
+        self.table = [[] for _ in range(size)]
+
+    def _hash(self, key):
+        return hash(key) % self.size
+
+    def insert(self, key, value):
+        idx = self._hash(key)
+        for pair in self.table[idx]:
+            if pair[0] == key:
+                pair[1] = value
+                return
+        self.table[idx].append([key, value])
+
+    def get(self, key):
+        idx = self._hash(key)
+        for pair in self.table[idx]:
+            if pair[0] == key:
+                return pair[1]
+        return None
+
+# Even if multiple keys hash to same index,
+# they form a chain (list) at that index.
+# O(1) average, O(n) worst case (all in one bucket)</div>
+</div>`,
+
+searching:`<div class="topic-title">Searching</div>
+<div class="topic-subtitle">Finding an element in a collection. Two fundamental approaches: linear search (brute force) and binary search (divide and conquer).</div>
+<div class="sub-nav">
+  <button class="sub-btn active" onclick="subShow(this,'se1')">Linear Search</button>
+  <button class="sub-btn" onclick="subShow(this,'se2')">Binary Search</button>
+  <button class="sub-btn" onclick="subShow(this,'se3')">Comparison</button>
+</div>
+<div id="se1">
+  <div class="section-label">Linear Search — check every element</div>
+<div class="code-block">def linear_search(arr, target):
+    for i in range(len(arr)):
+        if arr[i] == target:
+            return i        # found at index i
+    return -1               # not found
+
+arr = [64, 34, 25, 12, 22, 11, 90]
+print(linear_search(arr, 25))  # 2
+print(linear_search(arr, 99))  # -1</div>
+  <div class="badge-row">
+    <span class="badge badge-amber">Time: O(n)</span>
+    <span class="badge badge-teal">Space: O(1)</span>
+    <span class="badge badge-blue">Works on: any array (unsorted ok)</span>
+  </div>
+  <div class="explain">Simple but slow for large arrays. If you have 1 million items, you might check all 1 million in the worst case.</div>
+</div>
+<div id="se2" style="display:none">
+  <div class="section-label">Binary Search — cut the search space in half each time</div>
+  <div class="tip-box"><b>Requirement:</b> Array must be sorted. If unsorted, sort first (but that costs O(n log n)).</div>
+<div class="code-block">def binary_search(arr, target):
+    low, high = 0, len(arr) - 1
+
+    while low <= high:
+        mid = (low + high) // 2
+
+        if arr[mid] == target:
+            return mid          # found!
+        elif arr[mid] < target:
+            low = mid + 1       # target is in right half
+        else:
+            high = mid - 1      # target is in left half
+
+    return -1   # not found
+
+arr = [11, 12, 22, 25, 34, 64, 90]  # sorted!
+print(binary_search(arr, 25))   # 3
+print(binary_search(arr, 99))   # -1</div>
+  <div class="badge-row">
+    <span class="badge badge-teal">Time: O(log n)</span>
+    <span class="badge badge-teal">Space: O(1)</span>
+    <span class="badge badge-coral">Requires: sorted array</span>
+  </div>
+</div>
+<div id="se3" style="display:none">
+  <table class="complexity-table">
+    <tr><th></th><th>Linear Search</th><th>Binary Search</th></tr>
+    <tr><td>Time complexity</td><td class="bad">O(n)</td><td class="good">O(log n)</td></tr>
+    <tr><td>Requires sorted?</td><td class="good">No</td><td class="bad">Yes</td></tr>
+    <tr><td>Space</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+    <tr><td>n = 1,000,000 steps</td><td class="bad">1,000,000</td><td class="good">20</td></tr>
+    <tr><td>Best for</td><td>Small/unsorted data</td><td>Large sorted data</td></tr>
+  </table>
+  <div class="tip-box"><b>The power of binary search:</b> 1 billion items needs only 30 comparisons (log₂ 1,000,000,000 ≈ 30). This is the practical difference between O(n) and O(log n).</div>
+</div>`,
+
+sorting:`<div class="topic-title">Sorting Algorithms</div>
+<div class="topic-subtitle">Arranging elements in order. CampusX covers Bubble, Selection, and Merge Sort — each with very different performance characteristics.</div>
+<div class="sub-nav">
+  <button class="sub-btn active" onclick="subShow(this,'so1')">Bubble Sort</button>
+  <button class="sub-btn" onclick="subShow(this,'so2')">Selection Sort</button>
+  <button class="sub-btn" onclick="subShow(this,'so3')">Merge Sort</button>
+  <button class="sub-btn" onclick="subShow(this,'so4')">Comparison</button>
+</div>
+<div id="so1">
+  <div class="section-label">Bubble Sort — repeatedly swap adjacent pairs</div>
+  <div class="explain">Each pass "bubbles" the largest unsorted element to its correct position at the end. Repeat until no swaps needed.</div>
+<div class="code-block">def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+        for j in range(0, n - i - 1):
+            if arr[j] > arr[j+1]:
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+                swapped = True
+        if not swapped:       # early exit if sorted
+            break
+    return arr
+
+arr = [64, 34, 25, 12, 22, 11, 90]
+print(bubble_sort(arr))
+# Pass 1: [34,25,12,22,11,64,90] ← 90 bubbled to end
+# Pass 2: [25,12,22,11,34,64,90] ← 64 in place
+# ...</div>
+  <div class="badge-row">
+    <span class="badge badge-coral">Time: O(n²) worst/avg</span>
+    <span class="badge badge-teal">Time: O(n) best (sorted)</span>
+    <span class="badge badge-teal">Space: O(1)</span>
+  </div>
+</div>
+<div id="so2" style="display:none">
+  <div class="section-label">Selection Sort — find minimum, place it at front</div>
+  <div class="explain">Divide array into sorted (left) and unsorted (right) portions. Each pass selects the minimum from unsorted and appends it to sorted.</div>
+<div class="code-block">def selection_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        min_idx = i
+        for j in range(i+1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+    return arr
+
+arr = [64, 25, 12, 22, 11]
+print(selection_sort(arr))
+# Pass 1: find min(11) → swap with index 0 → [11,25,12,22,64]
+# Pass 2: find min(12) from index 1 → [11,12,25,22,64]
+# ...</div>
+  <div class="badge-row">
+    <span class="badge badge-coral">Time: O(n²) always</span>
+    <span class="badge badge-teal">Space: O(1)</span>
+    <span class="badge badge-amber">Fewer swaps than Bubble</span>
+  </div>
+</div>
+<div id="so3" style="display:none">
+  <div class="section-label">Merge Sort — divide, sort halves, merge</div>
+  <div class="explain">Recursively split array in half until single elements, then merge sorted halves. Much faster than Bubble/Selection.</div>
+<div class="code-block">def merge_sort(arr):
+    if len(arr) <= 1:
+        return arr
+
+    mid = len(arr) // 2
+    left = merge_sort(arr[:mid])   # sort left half
+    right = merge_sort(arr[mid:])  # sort right half
+    return merge(left, right)      # merge sorted halves
+
+def merge(left, right):
+    result = []
+    i = j = 0
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+    result.extend(left[i:])
+    result.extend(right[j:])
+    return result
+
+arr = [38, 27, 43, 3, 9, 82, 10]
+print(merge_sort(arr))  # [3, 9, 10, 27, 38, 43, 82]</div>
+  <div class="badge-row">
+    <span class="badge badge-teal">Time: O(n log n) always</span>
+    <span class="badge badge-amber">Space: O(n)</span>
+  </div>
+  <div class="tip-box"><b>Why O(n log n)?</b> log n levels of recursion, and each level does O(n) work merging. This is the theoretical optimal for comparison-based sorting.</div>
+</div>
+<div id="so4" style="display:none">
+  <table class="complexity-table">
+    <tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Stable?</th></tr>
+    <tr><td>Bubble Sort</td><td class="good">O(n)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td><td>Yes</td></tr>
+    <tr><td>Selection Sort</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td><td>No</td></tr>
+    <tr><td>Merge Sort</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="bad">O(n)</td><td>Yes</td></tr>
+  </table>
+  <div class="tip-box"><b>Stable sort</b> means equal elements keep their original order. <b>In practice:</b> Python's built-in sort uses Timsort — a hybrid of Merge Sort and Insertion Sort — runs at O(n log n) and is stable.</div>
+</div>`,
+
+cheatsheet:`<div class="topic-title">Complexity Cheatsheet</div>
+<div class="topic-subtitle">Quick reference for everything covered in the CampusX DSA course.</div>
+<div class="section-label">Data Structures</div>
+<table class="complexity-table">
+  <tr><th>Structure</th><th>Access</th><th>Search</th><th>Insert</th><th>Delete</th></tr>
+  <tr><td>Array</td><td class="good">O(1)</td><td class="bad">O(n)</td><td class="bad">O(n)</td><td class="bad">O(n)</td></tr>
+  <tr><td>Linked List</td><td class="bad">O(n)</td><td class="bad">O(n)</td><td class="good">O(1)*</td><td class="good">O(1)*</td></tr>
+  <tr><td>Stack</td><td class="bad">O(n)</td><td class="bad">O(n)</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+  <tr><td>Queue</td><td class="bad">O(n)</td><td class="bad">O(n)</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+  <tr><td>Hash Table</td><td>—</td><td class="good">O(1) avg</td><td class="good">O(1) avg</td><td class="good">O(1) avg</td></tr>
+</table>
+<div class="section-label" style="margin-top:16px">Sorting Algorithms</div>
+<table class="complexity-table">
+  <tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th></tr>
+  <tr><td>Bubble Sort</td><td class="good">O(n)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td></tr>
+  <tr><td>Selection Sort</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td></tr>
+  <tr><td>Merge Sort</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="bad">O(n)</td></tr>
+  <tr><td>Python sorted()</td><td class="good">O(n)</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="ok">O(n)</td></tr>
+</table>
+<div class="section-label" style="margin-top:16px">Searching</div>
+<table class="complexity-table">
+  <tr><th>Algorithm</th><th>Time</th><th>Space</th><th>Requires</th></tr>
+  <tr><td>Linear Search</td><td class="bad">O(n)</td><td class="good">O(1)</td><td>Nothing</td></tr>
+  <tr><td>Binary Search</td><td class="good">O(log n)</td><td class="good">O(1)</td><td>Sorted array</td></tr>
+</table>
+<div class="section-label" style="margin-top:16px">Big O Quick Rules</div>
+<div class="tip-box" style="margin-bottom:8px"><b>Drop constants:</b> O(2n) → O(n), O(500) → O(1)</div>
+<div class="tip-box" style="margin-bottom:8px"><b>Drop lower terms:</b> O(n² + n) → O(n²)</div>
+<div class="tip-box" style="margin-bottom:8px"><b>Single loop:</b> O(n) · <b>Nested loop:</b> O(n²) · <b>Halving each time:</b> O(log n)</div>
+<div class="tip-box"><b>* with known position or head/tail pointer</b></div>`
+};
+
+function subShow(btn, id) {
+  const parent = btn.closest('.content') || document.getElementById('content');
+  const btns = btn.parentElement.querySelectorAll('.sub-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const panels = btn.parentElement.nextElementSibling;
+  let el = btn.parentElement.nextElementSibling;
+  while(el) {
+    if(el.id) el.style.display = el.id === id ? '' : 'none';
+    el = el.nextElementSibling;
+  }
+}
+
+function show(topic) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('content').innerHTML = topics[topic];
+}
+
+document.getElementById('content').innerHTML = topics['complexity'];
+</script>
